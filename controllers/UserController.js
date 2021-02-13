@@ -4,7 +4,28 @@ const validator = require("validator")
 
 class UserController {
     async index(req, res){
+        try {
+            let users = await User.findAll()
+            res.json(users)
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
+    async findUser(req, res){
+        let id = req.params.id
+        try {
+            let user = await User.findById(id)
+            if (user == undefined){
+                res.send({err: "Usuário não encontrado"})
+                return res.status(404)
+            } else {
+                res.status(200)
+                res.json(user)
+            }
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     async create(req, res){
@@ -31,6 +52,37 @@ class UserController {
 
         res.send("Tudo OK!")
         res.status(200)
+    }
+
+    async edit(req, res){
+        var {id, name, email, role} = req.body
+
+        var result = await User.update(id, email, name, role)
+        if (result != undefined){
+            if (result.status){
+                res.status(200)
+                res.send("Tudo OK")
+            }else{
+                res.status(406)
+                res.send(result.err)
+            }
+        } else {
+            res.status(406)
+            res.send("Ocorreu um erro no servidor!")
+        }
+    }
+
+    async remove(req, res){
+        let id = req.params.id
+        let result = await User.delete(id)
+
+        if (result.status){
+            res.status(200)
+            res.send("Deleção feita com sucesso")
+        } else {
+            res.status(404)
+            res.send(result.err)
+        }
     }
 }
 
