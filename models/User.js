@@ -1,6 +1,7 @@
 const knex = require("../database/connection")
 const bcrypt = require("bcrypt")
 const { select } = require("../database/connection")
+const PasswordToken = require("./PasswordToken")
 
 class User {
     async new(name, email, password){
@@ -55,7 +56,7 @@ class User {
 
     async findByEmail(email){
         try {
-            var result = await knex.select(["id", "name", "email", "role"]).where({email: email}).table("users")
+            var result = await knex.select(["id", "name", "email", "password", "role"]).where({email: email}).table("users")
             if (result.length > 0){
                 return result[0]
             } else {
@@ -131,6 +132,12 @@ class User {
                 err: "Usuário Inválido!"
             }
         } 
+    }
+
+    async changePassword(newPassword, id, token){
+        let hash = await bcrypt.hash(newPassword, 10)
+        await  knex.update({password: hash}).where({id: id}).table("users")
+        await PasswordToken.setUsed(token)
     }
 }
 
